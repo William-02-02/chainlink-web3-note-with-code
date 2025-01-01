@@ -1,0 +1,14 @@
+{
+    "builds": [
+        {
+            "src": "lottery/package.json",
+            "use": "@vercel/next"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/lottery/src/app/lottery/$1"
+        }
+    ]
+}
