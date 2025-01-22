@@ -1,7 +1,7 @@
 
 const { network, ethers } = require("hardhat");
 const { networkConfig, developmentChains } = require("../helper-hardhat-config");
-const VRF_SUB_FUND_AMOUNT = ethers.parseEther("2");
+const VRF_SUB_FUND_AMOUNT = ethers.parseEther("60");
 const { verify } = require("../utils/verify");
 
 module.exports = async ({ getNamedAccounts, deployments }) => {
@@ -18,10 +18,20 @@ module.exports = async ({ getNamedAccounts, deployments }) => {
         vrfCoordinatorV2Address = vrfCoordinatorV2_5Mock.target;
         const transactionResp = await vrfCoordinatorV2_5Mock.createSubscription();
         const transactionReceipt = await transactionResp.wait(1);
-        log("debug----")
-        log("vrfCoordinatorV2_5Mock:",vrfCoordinatorV2_5Mock)
-        subscriptionId = transactionReceipt.logs[0].topics[1];
-        log("topic:",transactionReceipt.logs[0].topics[1])
+
+        // 从哪个区块到最新区块中 查询哪个事件
+        const eventFilter = vrfCoordinatorV2_5Mock.filters.SubscriptionCreated()
+        const events = await vrfCoordinatorV2_5Mock.queryFilter(eventFilter, 0, 'latest')
+        log("events:",events)
+        // 把subscriptionId转化为十六进制，前方添加0x
+        // 这里可以使用ethers.utils.hexValue(events[0].args[0]) 但是我的是hardhat ethers 版本还是5
+        subscriptionId = "0x" + events[0].args[0].toString(16)
+
+        // log("debug----")
+        // log("vrfCoordinatorV2_5Mock:",vrfCoordinatorV2_5Mock)
+        // subscriptionId = transactionReceipt.logs[0].topics[1];
+        // console.log("topic:",transactionReceipt.logs[0].topics[1])
+
 
         // fund the subscription
         await vrfCoordinatorV2_5Mock.fundSubscription(subscriptionId, VRF_SUB_FUND_AMOUNT);
