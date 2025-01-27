@@ -6,7 +6,7 @@ import Image from "next/image"
 import { Card, useNotification } from "web3uikit"
 import { ethers } from "ethers"
 import UpdateListingModal from "./UpdateListingModal"
-
+import { useRouter } from "next/router"
 const truncateStr = (fullStr, strLen) => {
     if (fullStr.length <= strLen) return fullStr
 
@@ -23,6 +23,7 @@ const truncateStr = (fullStr, strLen) => {
 }
 
 export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress, seller }) {
+    const router = useRouter()
     const { isWeb3Enabled, account } = useMoralis()
     const [imageURI, setImageURI] = useState("")
     const [tokenName, setTokenName] = useState("")
@@ -51,6 +52,7 @@ export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress,
         },
     })
 
+    // 异步函数，用于更新UI
     async function updateUI() {
         const tokenURI = await getTokenURI()
         console.log(`The TokenURI is ${tokenURI}`)
@@ -83,12 +85,7 @@ export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress,
     const formattedSellerAddress = isOwnedByUser ? "you" : truncateStr(seller || "", 15)
 
     const handleCardClick = () => {
-        isOwnedByUser
-            ? setShowModal(true)
-            : buyItem({
-                  onError: (error) => console.log(error),
-                  onSuccess: handleBuyItemSuccess,
-              })
+        router.push(`/nft/${nftAddress}/${tokenId}`)
     }
 
     const handleBuyItemSuccess = async (tx) => {
@@ -100,6 +97,8 @@ export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress,
             position: "topR",
         })
     }
+
+
 
     return (
         <div>
@@ -119,7 +118,7 @@ export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress,
                             onClick={handleCardClick}
                         >
                             <div className="p-2">
-                                <div className="flex flex-col items-end gap-2">
+                                <div className="flex flex-col items-center gap-2">
                                     <div>#{tokenId}</div>
                                     <div className="italic text-sm">
                                         Owned by {formattedSellerAddress}
@@ -138,7 +137,11 @@ export default function NFTBox({ price, nftAddress, tokenId, marketplaceAddress,
                         </Card>
                     </div>
                 ) : (
-                    <div>Loading...</div>
+                    <div className="animate-pulse bg-white/10 rounded-2xl p-4">
+                        <div className="h-48 bg-white/5 rounded-xl mb-4"></div>
+                        <div className="h-4 bg-white/5 rounded-lg w-3/4 mb-2"></div>
+                        <div className="h-4 bg-white/5 rounded-lg w-1/2"></div>
+                    </div>
                 )}
             </div>
         </div>
